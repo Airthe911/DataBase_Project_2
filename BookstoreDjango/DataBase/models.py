@@ -36,7 +36,7 @@ class User2Store(models.Model):
     store_id = models.CharField(max_length=100, null=True,blank=True)
 
 class OrderInfo(models.Model):
-    order_id = models.CharField(max_length=100, null=True,blank=True)
+    order_id = models.CharField(max_length=300, null=True,blank=True)
     user_id = models.CharField(max_length=100, null=True,blank=True)
     store_id = models.CharField(max_length=100, null=True,blank=True)
     book_id = models.CharField(max_length=100, null=True,blank=True)

@@ -66,17 +66,18 @@ def login(request):
 
             code, message = check_password(user_id, password)
             if code != 200:
-                return JsonResponse({"status": code, "message": message})
+                return JsonResponse({"status": code, "message": message}, status=code)
 
             token = jwt_encode(user_id, terminal)
             if not models.User.objects.filter(user_id=user_id).exists():
                 return error.error_authorization_fail()
             else:
                 models.User.objects.filter(user_id=user_id).update(token=token, terminal=terminal)
-                return JsonResponse({"status": 200, "message": "ok", "token": token})
+                return JsonResponse({"status": 200, "message": "ok", "token": token}, status=200)
 
         except BaseException as e:
-            return JsonResponse({"status": 530, "message": str(e)})
+            return JsonResponse({"status": 530, "message": str(e)}, status=530)
+            # return HttpResponse(str(e), status=530)
 
 @csrf_exempt
 def register(request):
@@ -88,11 +89,11 @@ def register(request):
             terminal = "terminal_{}".format(str(time.time()).replace(".", "_"))
             token = jwt_encode(user_id, terminal)
             if models.User.objects.filter(user_id=user_id).exists():
-                return JsonResponse({"status": 931, "message": "该账号已被注册"})
+                return JsonResponse({"status": 331, "message": "该账号已被注册"}, status=331)
             models.User.objects.create(user_id=user_id, password=password, balance=0, token=token, terminal=terminal)
         except Exception as e:
-            return JsonResponse({"status": 901, "message": str(e)})
-        return JsonResponse({"status": 200, "message": "ok"})
+            return JsonResponse({"status": 301, "message": str(e)}, status=301)
+        return JsonResponse({"status": 200, "message": "ok"}, status=200)
 
 @csrf_exempt
 def logout(request):
@@ -102,7 +103,7 @@ def logout(request):
         token = data.get("token")
         code, message = check_token(user_id, token)
         if code != 200:
-            return JsonResponse({"status": code, "message": message})
+            return JsonResponse({"status": code, "message": message}, status=code)
         terminal = "terminal_{}".format(str(time.time()).replace(".", "_"))
         dummy_token = jwt_encode(user_id, terminal)
         if not models.User.objects.filter(user_id=user_id).exists():
@@ -110,9 +111,9 @@ def logout(request):
         else:
             models.User.objects.filter(user_id=user_id).update(token=dummy_token, terminal=terminal)
     except BaseException as e:
-        return JsonResponse({"status": 530, "message": str(e)})
+        return JsonResponse({"status": 530, "message": str(e)}, status=530)
 
-    return JsonResponse({"status": 200, "message": "Logged out successfully"})
+    return JsonResponse({"status": 200, "message": "Logged out successfully"}, status=200)
 
 @csrf_exempt
 def unregister(request):
@@ -122,35 +123,35 @@ def unregister(request):
         password = data.get("password")
         code, message = check_password(user_id, password)
         if code != 200:
-            return JsonResponse({"status": code, "message": message})
+            return JsonResponse({"status": code, "message": message}, status=code)
         if not models.User.objects.filter(user_id=user_id).exists():
             return error.error_authorization_fail()
         else:
             models.User.objects.filter(user_id=user_id).delete()
     except BaseException as e:
-        return JsonResponse({"status": 530, "message": str(e)})
+        return JsonResponse({"status": 530, "message": str(e)}, status=530)
 
-    return JsonResponse({"status": 200, "message": "Unregistered successfully"})
+    return JsonResponse({"status": 200, "message": "Unregistered successfully"}, status=200)
 
 @csrf_exempt
 def change_password(request):
     try:
         data = json.loads(request.body)
         user_id = data.get("user_id")
-        old_password = data.get("old_password")
-        new_password = data.get("new_password")
+        old_password = data.get("oldPassword")
+        new_password = data.get("newPassword")
+        print(old_password)
+        print(new_password)
         code, message = check_password(user_id, old_password)
         if code != 200:
-            return JsonResponse({"status": code, "message": message})
+            return JsonResponse({"status": code, "message": message}, status=code)
 
         if not models.User.objects.filter(user_id=user_id).exists():
             return error.error_authorization_fail()
 
         else:
-            terminal = "terminal_{}".format(str(time.time()).replace(".", "_"))
-            token = jwt_encode(user_id, terminal)
-            models.User.objects.filter(user_id=user_id).update(password=new_password, token=token, terminal=terminal)
-            return JsonResponse({"status": 200, "message": "Password changed successfully"})
+            models.User.objects.filter(user_id=user_id).update(password=new_password)
+            return JsonResponse({"status": 200, "message": "ok"}, status=200)
 
     except BaseException as e:
-        return JsonResponse({"status": 530, "message": str(e)})
+        return JsonResponse({"status": 530, "message": str(e)}, status=530)

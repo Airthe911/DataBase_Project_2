@@ -15,7 +15,7 @@ def new_order(request):
         data = json.loads(request.body)
         user_id = data.get("user_id")
         store_id = data.get("store_id")
-        id_and_count = data.get("id_and_count")
+        books = data.get("books")
         if not models.User.objects.filter(user_id=user_id).exists():
             return error.error_non_exist_user_id(user_id)
 
@@ -25,7 +25,9 @@ def new_order(request):
         uid = "{}_{}_{}".format(user_id, store_id, str(uuid.uuid1()))
         order_id = uid
 
-        for book_id, count in id_and_count:
+        for book in books:
+            book_id = book["id"]
+            count = book["count"]
             if not models.Store.objects.filter(store_id=store_id, book_id=book_id).exists():
                 return error.error_non_exist_book_id(book_id)
 
@@ -54,13 +56,14 @@ def new_order(request):
 
     except sqlite.Error as e:
         logging.info("528, {}".format(str(e)))
-        return JsonResponse({"status": 528, "message": str(e)})
+        return JsonResponse({"status": 528, "message": str(e)}, status=528)
 
     except BaseException as e:
+        print(e)
         logging.info("530, {}".format(str(e)))
-        return JsonResponse({"status": 530, "message": str(e)})
+        return JsonResponse({"status": 530, "message": str(e)}, status=530)
 
-    return JsonResponse({"status": 200, "message": "Order placed successfully", "order_id": order_id})
+    return JsonResponse({"status": 200, "message": "Order placed successfully", "order_id": order_id}, status=200)
 
 @csrf_exempt
 def payment(request):
@@ -79,7 +82,7 @@ def payment(request):
             return error.error_authorization_fail()
         # 新功能需要，付款前先验证订单状态
         if state_code != 0:
-            return JsonResponse({"status": 912, "message": "只有未付款的订单才能执行该操作"})
+            return JsonResponse({"status": 312, "message": "只有未付款的订单才能执行该操作"}, status=312)
         if not models.User.objects.filter(user_id=user_id).exists():
             return error.error_authorization_fail()
         buyer_info = models.User.objects.filter(user_id=user_id).first()
@@ -94,7 +97,7 @@ def payment(request):
             return error.error_non_exist_user_id(seller_id)
         seller_balance = models.User.objects.filter(user_id=seller_id).first().balance
         if not models.OrderInfo.objects.filter(order_id=order_id).exists():
-            return JsonResponse({"status": 903, "message": "查询order_info表出错"})
+            return JsonResponse({"status": 303, "message": "查询order_info表出错"}, status=303)
         total_price = 0
         order_infoes = models.OrderInfo.objects.filter(order_id=order_id)
         for order_info in order_infoes:
@@ -104,11 +107,11 @@ def payment(request):
         models.User.objects.filter(user_id=user_id).update(balance=balance - total_price)
         models.User.objects.filter(user_id=seller_id).update(balance=seller_balance + total_price)
         models.OrderInfo.objects.filter(order_id=order_id).update(state=1, payment_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        return JsonResponse({"status": 200, "message": "ok"})
+        return JsonResponse({"status": 200, "message": "ok"}, status=200)
     except sqlite.Error as e:
-        return JsonResponse({"status": 528, "message": str(e)})
+        return JsonResponse({"status": 528, "message": str(e)}, status=528)
     except BaseException as e:
-        return JsonResponse({"status": 530, "message": str(e)})
+        return JsonResponse({"status": 530, "message": str(e)}, status=530)
 
 @csrf_exempt
 def add_funds(request):
@@ -125,10 +128,10 @@ def add_funds(request):
         if saved_password != password:
             return error.error_authorization_fail()
         models.User.objects.filter(user_id=user_id).update(balance=balance + add_value)
-        return JsonResponse({"status": 200, "message": "ok"})
+        return JsonResponse({"status": 200, "message": "ok"}, status=200)
     except sqlite.Error as e:
-        return JsonResponse({"status": 528, "message": str(e)})
+        return JsonResponse({"status": 528, "message": str(e)}, status=528)
     except BaseException as e:
-        return JsonResponse({"status": 530, "message": str(e)})
+        return JsonResponse({"status": 530, "message": str(e)}, status=530)
     
 
