@@ -27,8 +27,8 @@ class Store(models.Model):
 class User(models.Model):
     user_id = models.CharField(max_length=100, null=True,blank=True)
     password = models.CharField(max_length=100, null=True,blank=True)
-    balance = models.DecimalField(max_digits=10, decimal_places=2, null=True,blank=False)
-    token = models.CharField(max_length=300, null=True,blank=True)
+    balance = models.DecimalField(max_digits=15, decimal_places=2, null=True,blank=False)
+    token = models.CharField(max_length=600, null=True,blank=True)
     terminal = models.CharField(max_length=100, null=True,blank=True)
 
 class User2Store(models.Model):

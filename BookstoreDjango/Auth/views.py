@@ -76,6 +76,7 @@ def login(request):
                 return JsonResponse({"status": 200, "message": "ok", "token": token}, status=200)
 
         except BaseException as e:
+            print(e)
             return JsonResponse({"status": 530, "message": str(e)}, status=530)
             # return HttpResponse(str(e), status=530)
 
@@ -140,8 +141,6 @@ def change_password(request):
         user_id = data.get("user_id")
         old_password = data.get("oldPassword")
         new_password = data.get("newPassword")
-        print(old_password)
-        print(new_password)
         code, message = check_password(user_id, old_password)
         if code != 200:
             return JsonResponse({"status": code, "message": message}, status=code)
